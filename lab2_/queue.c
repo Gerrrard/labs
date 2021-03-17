@@ -28,10 +28,12 @@ Queue * queue_new(){
 	#ifdef USE_LIST
 
 	cont->list = list_new();
+	printf("List\n");
 
 	#else
 
 	cont->vector = vector_new();
+    printf("Vector\n");
 
 	#endif
 

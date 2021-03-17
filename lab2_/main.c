@@ -13,16 +13,24 @@ int main()
         return 1;
     }
 
-    while(get_int(&tempid)){
+    while(!get_int(&tempid)){
 
-        if(get_int(&temptc)){
+        if(!tempid){
+                break;
+        }
+
+        scanf("%d",&temptc);
+        scanf("%d",&tempte);
+
+
+        /*if(get_int(&temptc)){
             printf("Error in input, EOF\n");
             return 1;
         }
         if(get_int(&tempte)){
             printf("Error in input, EOF\n");
             return 1;
-        }
+        }*/
 
         if(queue_push(queue, tempid, temptc, tempte)){
             printf("Queue is full, error\n");
