@@ -7,7 +7,7 @@ typedef struct Item{
    struct Item* next;
 }Item;
 
-typedef struct queue_list{
+typedef struct List{
    Item* head;
    Item* tail;
 }List;

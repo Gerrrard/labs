@@ -8,18 +8,18 @@ int main()
     data block;
     Queue * queue = queue_new();
 
-    if(get_int("%d", &quant)){
+    if(get_int(&quant)){
         printf("Error in input, EOF\n");
         return 1;
     }
 
-    while(get_int("%d", &tempid)){
+    while(get_int(&tempid)){
 
-        if(get_int("%d", &temptc)){
+        if(get_int(&temptc)){
             printf("Error in input, EOF\n");
             return 1;
         }
-        if(get_int("%d", &tempte)){
+        if(get_int(&tempte)){
             printf("Error in input, EOF\n");
             return 1;
         }
@@ -35,19 +35,19 @@ int main()
 
     do{
         block = queue_pop(queue);
-        if(block->id != -1){
-            tempte = (block->te - quant >= 0)? quant : block->te % quant;
+        if(block.id != -1){
+            tempte = (block.te - quant >= 0)? quant : block.te % quant;
             while(tempte > 0){
-                printf("%d   &d\n", nowtime, block->id);
+                printf("%d   &d\n", nowtime, block.id);
                 tempte--;
                 nowtime++;
-                block->te -= 1;
+                block.te -= 1;
             }
-            if(block->te > 0){
-                queue_push(queue, block->id, block->tc, block->te);
+            if(block.te > 0){
+                queue_push(queue, block.id, block.tc, block.te);
             }
         }
-    }while(block->id != -1);
+    }while(block.id != -1);
 
     printf("Finished\n", size);
 }

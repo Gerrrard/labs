@@ -31,16 +31,16 @@ int list_push(List * list, int id, int tc, int te){
 
 Item list_pop(List * list){
     Item item;
-    item->id = -1;
-    item->tc = -1;
-    item->te = -1;
+    item.id = -1;
+    item.tc = -1;
+    item.te = -1;
 
     Item *old_head = list->head;
 
     if(list->head){
-        item->id = list->head->id;
-        item->tc = list->head->tc;
-        item->te = list->head->te;
+        item.id = list->head->id;
+        item.tc = list->head->tc;
+        item.te = list->head->te;
         list->head = list->head->next;
     }
 

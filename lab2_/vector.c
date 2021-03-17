@@ -36,17 +36,17 @@ int vector_push(Vector * vector, int id, int tc, int te){
 Item vector_pop(Vector * vector){
 	Item result;
 
-	result->id = -1;
-	result->tc = -1;
-	result->te = -1;
+	result.id = -1;
+	result.tc = -1;
+	result.te = -1;
 
 	if(vector->size == 0){
         return result;
 	}
 
-	result->id = (vector->items + vector->front)->id;
-	result->te = (vector->items + vector->front)->te;
-	result->tc = (vector->items + vector->front)->tc;
+	result.id = (vector->items + vector->front)->id;
+	result.te = (vector->items + vector->front)->te;
+	result.tc = (vector->items + vector->front)->tc;
 
 	vector->size--;
     vector->front = (vector->front + 1) % VECTOR_CAPACITY;

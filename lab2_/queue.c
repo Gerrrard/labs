@@ -3,6 +3,16 @@
 #include <stddef.h>
 #include "queue.h"
 
+#ifdef USE_LIST
+
+#include "list.h"
+
+#else
+
+#include "vector.h"
+
+#endif
+
 struct Container{
 	#ifdef USE_LIST
 	List *list;
@@ -49,11 +59,11 @@ int queue_delete(Queue * q){
 int queue_push(Queue * q, int id, int tc, int te){
 	#ifdef USE_LIST
 
-	int status = list_push(s->cont->list, id, tc, te);
+	int status = list_push(q->cont->list, id, tc, te);
 
 	#else
 
-	int status = vector_push(s->cont->vector, id, tc, te);
+	int status = vector_push(q->cont->vector, id, tc, te);
 
 	#endif
 
@@ -66,17 +76,17 @@ data queue_pop(Queue * q){
 
 	#ifdef USE_LIST
 
-	Item item = list_pop(s->cont->list);
-	result->id = item->id;
-	result->tc = item->tc;
-	result->te = item->te;
+	Item item = list_pop(q->cont->list);
+	result.id = item.id;
+	result.tc = item.tc;
+	result.te = item.te;
 
 	#else
 
-	Item item = vector_pop(s->cont->vector);
-	result->id = item->id;
-	result->tc = item->tc;
-	result->te = item->te;
+	Item item = vector_pop(q->cont->vector);
+	result.id = item.id;
+	result.tc = item.tc;
+	result.te = item.te;
 
 	#endif
 
@@ -108,9 +118,9 @@ int get_int(int * addr){
 			printf("Invalid input. Try again.\n");
 			scanf("%*[^\n]");
 		}
-		if(temp == 1 && *addr <= 0){
-            printf("Invalid input, number is lower or equal to 0. Try again.\n");
+		if(temp == 1 && *addr < 0){
+            printf("Invalid input, number is lower than 0. Try again.\n");
 		}
-	}while(temp == 0 || (temp == 1 && *addr <= 0));
+	}while(temp == 0 || (temp == 1 && *addr < 0));
 	return 0;
 }
