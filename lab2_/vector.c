@@ -28,7 +28,7 @@ int vector_push(Vector * vector, int id, int tc, int te){
 	ptr->te = te;
 
 	vector->size++;
-    vector->end = (vector->end) % VECTOR_CAPACITY;
+    vector->end = (vector->end + 1) % VECTOR_CAPACITY;
 
 	return 0;
 }
@@ -59,7 +59,7 @@ void vector_print(Vector * vector){
 	printf("\"");
 	for (int i = 0; i < vector->size; i++) {
         index = (vector->front + i) % VECTOR_CAPACITY;
-		printf("%d %d %d", vector->items[index].id, vector->items[index].tc, vector->items[index].te);
+		printf("%d %d %d\n", vector->items[index].id, vector->items[index].tc, vector->items[index].te);
 	}
 	printf("\"");
 	printf("\n");

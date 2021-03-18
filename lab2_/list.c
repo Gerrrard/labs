@@ -60,7 +60,7 @@ void list_print(const List * list){
     const Item* item = list->head;
 
     for(; item; item = item->next){
-        printf("%d %d %d", item->id, item->tc, item->te);
+        printf("%d %d %d\n", item->id, item->tc, item->te);
     }
     printf("\n");
 }
