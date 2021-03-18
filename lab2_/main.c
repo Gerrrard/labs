@@ -4,8 +4,8 @@
 
 int main()
 {
-    int quant, tempid, tempte, temptc, size = 0, nowtime = 0;
-    data block;
+    int quant, tempid, tempte, temptc, size = 0, nowtime = 0, next = 1;
+    data block, process;
     Queue * queue = queue_new();
 
     if(get_int(&quant)){
@@ -22,16 +22,6 @@ int main()
         scanf("%d",&temptc);
         scanf("%d",&tempte);
 
-
-        /*if(get_int(&temptc)){
-            printf("Error in input, EOF\n");
-            return 1;
-        }
-        if(get_int(&tempte)){
-            printf("Error in input, EOF\n");
-            return 1;
-        }*/
-
         if(queue_push(queue, tempid, temptc, tempte)){
             printf("Queue is full, error\n");
             return 1;
@@ -41,21 +31,54 @@ int main()
 
     printf("Queue size is %d\n\n", size);
 
+    size = 0;
+    tempid = 0, tempte = 1;
+    Queue * mq = queue_new();
+
     do{
-        block = queue_pop(queue);
-        if(block.id != -1){
-            tempte = (block.te - quant >= 0)? quant : block.te % quant;
-            while(tempte > 0){
-                printf("%d   &d\n", nowtime, block.id);
-                tempte--;
-                nowtime++;
-                block.te -= 1;
+        if(tempte > 0){
+            tempte--;
+        }
+
+        while(next == 1 || block.id != -1){
+            if(next == 1){
+                block = queue_pop(queue);
+                next = 0;
             }
-            if(block.te > 0){
-                queue_push(queue, block.id, block.tc, block.te);
+
+            if(block.id != -1){
+                if(block.tc == nowtime){
+                    queue_push(mq, block.id, block.tc, block.te);
+                    size++;
+                    next = 1;
+                }else{
+                    break;
+                }
             }
         }
-    }while(block.id != -1);
 
-    printf("Finished\n", size);
+        if(tempid == 0 || tempte == 0){
+            process = queue_pop(mq);
+
+            if(process.id != -1){
+                size--;
+                tempte = (process.te - quant >= 0)? quant : process.te;
+                process.te -= tempte;
+            }
+        }
+
+        printf("%d   %d\n", nowtime, process.id);       //if no process, writes -1, behavior can be easily changed
+        nowtime++;
+
+        if(tempte == 1 && process.te > 0){
+            queue_push(mq, process.id, process.tc, process.te);
+            size++;
+        }
+
+    }while(block.id != -1 || size != 0 || tempte != 0);
+
+    queue_delete(mq);
+    queue_delete(queue);
+
+    printf("Finished\n");
 }

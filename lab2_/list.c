@@ -54,6 +54,8 @@ void list_delete(List * list){
         list_pop(list);
     }
     list->head = list->tail = NULL;
+    free(list);
+    list = NULL;
 }
 
 void list_print(const List * list){
