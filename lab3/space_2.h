@@ -3,18 +3,11 @@
 
 typedef struct Info Info;
 
-typedef struct Node2 {
-	char *key;
-	int release;
-	struct Node2 *next;
-
-	Info *info;
-} Node2;
-
 typedef struct Item2 {
     int busy;
 	int release;
-	Node2 *head;
+	char *key;
+	Info *info;
 } Item2;
 
 typedef struct Space2 {
@@ -25,9 +18,6 @@ typedef struct Space2 {
 
 Space2 * space2_new(int max_size, int m_keylen);
 
-void node2_del(Node2 *node);
-
-void space2_rem_list(Node2 *head);
 void space2_del(Space2 *space);
 
 int space2_check_key(Space2 *space, char *key);
@@ -38,8 +28,8 @@ int space2_insert(Space2 *space, char *key, Info * info);
 Info * space2_find(Space2 *space, char *key, int release);
 Space2 * space2_find_all(Space_2 *space, char *key);
 
-int space2_remove(Space2 *space, char *key, int release);
-//change it: if release = 0 remove all and find first;
+int space2_remove_with_release(Space2 *space, char *key, int release);
+int space2_remove(Space2 *space, char *key);
 
 void space2_print(Space2 *space);
 
