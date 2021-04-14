@@ -1,17 +1,17 @@
 #ifndef	TREE_H
 #define TREE_H
 
-struct Node{
+typedef struct Node{
     int key;
     int version;
-    Node * left;
-    Node * right;
-    Node * parent;
+    struct Node * left;
+    struct Node * right;
+    struct Node * parent;
     char * str1;
     char * str2;
 } Node;
 
-struct Tree{
+typedef struct Tree{
     Node * root;
     int h;
     int n;

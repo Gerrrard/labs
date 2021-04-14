@@ -52,7 +52,6 @@ char* get_str() {
 }
 
 int dial_add(Tree *tree) {
-	int key;
 	printf("---ADD---\n");
 
 	printf("Enter key (int):\n");

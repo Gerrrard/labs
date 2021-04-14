@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "tree.h"
 
@@ -74,7 +75,7 @@ Node * tree_find_parent(Tree * tree, int key, int * ver) {
 	while (ptr) {
 		parent = ptr;
 
-		if (key = ptr->key){
+		if (key == ptr->key){
             version += 1;
 		}
 
@@ -182,14 +183,14 @@ Node * tree_find_close(Tree * tree, int key){
         }
 	}
 
-	return ptr;
+	return NULL;
 }
 
 int tree_add(Tree * tree, char * str1, char * str2, int key){
     if (!tree) return 1;
 
 	if (!tree->root) {
-		Node * root= node_new(key, 0, info1, info2, NULL, NULL, NULL);
+		Node * root= node_new(key, 0, str1, str2, NULL, NULL, NULL);
 
 		if (!root) return 1;
 
@@ -306,8 +307,8 @@ void tree_show(Node * ptr, int level){
 }
 
 
-//void tree_print_range(Tree * tree, int a, int b);
+void tree_print_range(Tree * tree, int a, int b);
 
-//void tree_graphviz(Tree *tree);
+void tree_graphviz(Tree *tree);
 
-//int tree_load(char *file);
+int tree_load(char *file);

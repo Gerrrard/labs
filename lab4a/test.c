@@ -45,10 +45,6 @@ int test(int count) {
         char * info2 = rand_str(len);
 
         if (!info1 || !info2) {
-            for (int i = 0; i < count; i++) {
-                free(keys[i]);
-            }
-
             free(info1);
             free(info2);
             free(keys);
