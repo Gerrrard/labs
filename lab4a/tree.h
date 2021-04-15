@@ -31,7 +31,7 @@ void tree_show(Node * ptr, int level);
 
 void tree_graphviz(Tree *tree);
 
-int tree_load(char *file);
+int tree_load(Tree * tree, char *filep);
 
 Node * tree_find(Tree * tree, int key, int version);
 Node * tree_find_close(Tree * tree, int key);

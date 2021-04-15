@@ -365,4 +365,66 @@ void tree_print_range(Tree * tree, Node * node, int a, int b){
     }
 }
 
-int tree_load(char *file);
+int tree_load(Tree * tree, char *filep){
+    int number;
+    long size;
+    char *buffer;
+
+    FILE* file = fopen(filep, "r");
+
+    if (!file ) {
+        printf("ERROR: Could not open file\n");
+        return 1;
+    }
+
+    fseek(file, 0L , SEEK_END);
+    size = ftell(file);
+    rewind(file);
+    buffer = calloc(1, size+1);
+    if (!buffer) {
+        fclose(file);
+        printf("ERROR: Error in buffer alloc\n");
+        return 2;
+    }
+
+    if (fread( buffer , size, 1 , file) != 1) {
+        fclose(file);
+        free(buffer);
+        printf("ERROR: Error in reading\n");
+    }
+
+    char * token;
+    char * str1;
+    char * str2;
+
+    if((token = strtok(buffer, ":\n")) != NULL){
+        number = atoi(token);
+        token = strtok (NULL, ":\n");
+        str1 = (char *)calloc((int)strlen(token) + 1, sizeof(char));
+        strcpy(str1, token);
+        token = strtok (NULL, ":\n");
+        str2 = (char *)calloc((int)strlen(token) + 1, sizeof(char));
+        strcpy(str2, token);
+        tree_add(tree, str1, str2, number);
+        free(str1);
+        free(str2);
+    }
+
+
+    while ((token = strtok(NULL, ":\n")) != NULL) {
+        number = atoi(token);
+        token = strtok (NULL, ":\n");
+        str1 = (char *)calloc((int)strlen(token) + 1, sizeof(char));
+        strcpy(str1, token);
+        token = strtok (NULL, ":\n");
+        str2 = (char *)calloc((int)strlen(token) + 1, sizeof(char));
+        strcpy(str2, token);
+        tree_add(tree, str1, str2, number);
+        free(str1);
+        free(str2);
+    }
+
+    fclose(file);
+    free(buffer);
+    return 0;
+}
