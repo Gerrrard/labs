@@ -25,7 +25,7 @@ void tree_delete(Node * root);
 
 int tree_add(Tree * tree, char * str1, char * str2, int key);
 int tree_remove(Tree * tree, int key, int version);
-void tree_print_range(Tree * tree, int a, int b);
+void tree_print_range(Tree * tree, Node * node, int a, int b);
 void tree_print(Node * ptr);
 void tree_show(Node * ptr, int level);
 

@@ -1,3 +1,5 @@
+#include <stdlib.h>
+
 #include "tree.h"
 #include "menu.h"
 
@@ -20,5 +22,7 @@ int main(int argc, const char** argv) {
 	start(tree);
 
 	tree_delete(tree->root);
+	free(tree);
+
 	return 0;
 }

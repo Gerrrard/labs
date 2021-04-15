@@ -8,8 +8,8 @@ Tree * tree_new(){
 	Tree * tree = (Tree *)calloc(1, sizeof(Tree));
 	if (!tree) return NULL;
 
-	tree->h = 0;
 	tree->n = 0;
+	tree->h = 0;
 	tree->root = NULL;
 
 	return tree;
@@ -45,11 +45,11 @@ Node * node_new(int key, int version, char * info1, char * info2, Node * left, N
 		return NULL;
 	}
 
+    node->key = key;
+	node->version = version;
     node->left = left;
 	node->right = right;
 	node->parent = parent;
-	node->key = key;
-	node->version = version;
 
 	strcpy(node->str1, info1);
 	strcpy(node->str2, info2);
@@ -60,10 +60,11 @@ Node * node_new(int key, int version, char * info1, char * info2, Node * left, N
 int n_side(Node *ptr) {
 	if (!ptr) return 0;
 	if (!ptr->parent) return 0;
-	if (ptr->parent->left == ptr) {
-		return -1;
-	} else {
+
+	if (ptr->parent->right == ptr) {
 		return 1;
+	} else {
+		return -1;
 	}
 }
 
@@ -86,7 +87,7 @@ Node * tree_find_parent(Tree * tree, int key, int * ver) {
 		}
 	}
 
-    ver = &version;
+    *ver = version;
 
 	return parent;
 }
@@ -114,7 +115,7 @@ Node * tree_find_max(Node * ptr) {
 Node * tree_find_prev(Node * ptr){
     if (!ptr) return NULL;
 
-	if (ptr->left) return tree_find_min(ptr->left);
+	if (ptr->left) return tree_find_max(ptr->left);
 
 	while (ptr->parent && n_side(ptr) < 0) {
 		ptr = ptr->parent;
@@ -141,7 +142,7 @@ Node * tree_find(Tree * tree, int key, int version){
 	Node * ptr = tree->root;
 	while (ptr) {
 		if (key == ptr->key){
-            if(ptr->version == version || version == -1){
+            if (ptr->version == version || version == -1) {
                 return ptr;
             }
             ptr = ptr->right;
@@ -159,14 +160,22 @@ Node * tree_find_close(Tree * tree, int key){
     if (!tree) return NULL;
 
     Node * example = tree_find(tree, key, -1);
+    Node * more = NULL;
+    Node * less = NULL;
 
-    Node * less = tree_find_prev(example);
-    while(less != NULL || key != less->key){
-        if(less != NULL) less = tree_find_prev(example->left);
-    }
-    Node * more = tree_find_next(example);
-    while(more != NULL || key != more->key){
-        if(more != NULL) more = tree_find_next(example->right);
+    if (!example) {
+        int i = 1;
+        while(!example && !more && !less){
+            key += i;
+            more = tree_find(tree, key, -1);
+            key -= i*2;
+            less = tree_find(tree, key, -1);
+            key += i;
+            i++;
+        }
+    } else {
+        less = tree_find_prev(example);
+        more = tree_find_next(example);
     }
 
 	if (!less && !more) {
@@ -182,8 +191,6 @@ Node * tree_find_close(Tree * tree, int key){
             return less;
         }
 	}
-
-	return NULL;
 }
 
 int tree_add(Tree * tree, char * str1, char * str2, int key){
@@ -241,13 +248,13 @@ int tree_remove(Tree * tree, int key, int version){
 		buffer = ptr->str1;
 		ptr->str1 = ptr_next->str1;
 		ptr_next->str1 = buffer;
+		free(ptr_next->str1);
 
 		buffer = ptr->str2;
 		ptr->str2 = ptr_next->str2;
 		ptr_next->str2 = buffer;
-
-		free(ptr_next->str1);
 		free(ptr_next->str2);
+
 		free(ptr_next);
 
 	} else {
@@ -265,10 +272,10 @@ int tree_remove(Tree * tree, int key, int version){
 
 		int side = n_side(ptr);
 
-		if (side < 0) {
-			ptr->parent->left = child;
-        } else if (side > 0) {
+		if (side > 0) {
 			ptr->parent->right = child;
+        } else if (side < 0) {
+			ptr->parent->left = child;
 		} else {
 			tree->root = child;
 		}
@@ -292,10 +299,10 @@ void tree_print(Node * ptr){
 void tree_show(Node * ptr, int level){
     if (!ptr) return;
 
-    tree_show(ptr->right, level + 1);
+    tree_show(ptr->left, level + 1);
 
     for(int i = 0; i < level; i++) {
-        printf("\t\t");
+        printf("\t");
     }
     char help;
     if (n_side(ptr) < 0) help = '\\';
@@ -303,12 +310,59 @@ void tree_show(Node * ptr, int level){
     else help = ' ';
     printf("%c (\"%d\", \"%d\", \"%s\", \"%s\")\n", help, ptr->key, ptr->version, ptr->str1, ptr->str2);
 
-    tree_show(ptr->left, level + 1);
+    tree_show(ptr->right, level + 1);
 }
 
+void tree_graphviz(Node * node){
+    if (!node) return;
 
-void tree_print_range(Tree * tree, int a, int b);
+    tree_graphviz(node->left);
+    if (node->parent) {
+        char S;
+        if(n_side(node) > 0){
+            S = 'R';
+        } else {
+            S = 'L';
+        }
+	    printf("\"%d : %s, %s\" -> \"%d : %s, %s\" [label = %c]\n", node->parent->key, node->parent->str1, node->parent->str2, node->key, node->str1, node->str2, );
+    }
+    tree_graphviz(node->right);
+}
 
-void tree_graphviz(Tree *tree);
+void tree_print_range(Tree * tree, Node * node, int a, int b){
+    if(a >= b){
+        if (!node) return;
+
+        node = tree_find(tree, a, -1);
+        if (!node) {
+        int key = a;
+        while (!node && key >= b){
+            key -= 1;
+            node = tree_find(tree, key, -1);
+            }
+        }
+
+        while(node && node->key >= b){
+            printf("Key: \"%d\", Version: \"%d\", Info1: \"%s\", Info2: \"%s\"\n", node->key, node->version, node->str1, node->str2);
+            node = tree_find_prev(node);
+        }
+    } else {
+        if (!node) return;
+
+        node = tree_find(tree, a, -1);
+        if (!node) {
+        int key = a;
+        while (!node && key <= b){
+            key += 1;
+            node = tree_find(tree, key, -1);
+            }
+        }
+
+        while(node && node->key >= a){
+            printf("Key: \"%d\", Version: \"%d\", Info1: \"%s\", Info2: \"%s\"\n", node->key, node->version, node->str1, node->str2);
+            node = tree_find_next(node);
+        }
+    }
+}
 
 int tree_load(char *file);

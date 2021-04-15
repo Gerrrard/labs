@@ -33,7 +33,7 @@ int test(int count) {
     srand(time(NULL));
 
     int * keys = (int *)calloc(count, sizeof(int));
-    if(!keys) return 1;
+    if (!keys) return 1;
 
     double t_add = 0, t_find = 0, t_remove = 0;
     int len = 10 * (int)(2 * log(count) / log(26.0));

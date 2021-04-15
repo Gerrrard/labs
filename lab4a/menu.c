@@ -147,11 +147,13 @@ int dial_show(Tree *tree) {
         printf("Enter second key (int):\n");
         if(get_int(&b)) return 1;
 
-		tree_print_range(tree, a, b);
+		tree_print_range(tree, tree->root, a, b);
     } else if (option == 3) {
 		tree_show(tree->root, 0);
 	} else if (option == 4) {
-		tree_graphviz(tree);
+	    printf("\ndigraph G {\n");
+		tree_graphviz(tree->root);
+		printf("}\n\n");
 	} else {
 		printf("ERROR: No such option");
 	}
@@ -164,7 +166,7 @@ int dial_test(Tree *tree) {
 
 	printf("Enter the number of elements\n");
 	int num;
-	if(get_int(&num)) return 1;
+	if (get_int(&num)) return 1;
 
 	if (test(num)) return 1;
 
@@ -193,8 +195,8 @@ int dialog(const char *menu[], const int menu_size) {
 }
 
 void start(Tree *tree) {
-	const char *menu[] = {"0) Quit", "1) Add", "2) Find", "3) Find closest", "4) Delete", "5) Show", "6) Test"};
-	const int menu_size = sizeof(menu)/sizeof(menu[0]);
+	char *menu[] = {"0) Quit", "1) Add", "2) Find", "3) Find closest", "4) Delete", "5) Show", "6) Test"};
+	int menu_size = sizeof(menu)/sizeof(menu[0]);
 
 	int (*dialog_functions[])(Tree*) = {NULL, dial_add, dial_find, dial_find_close, dial_delete, dial_show, dial_test};
 
