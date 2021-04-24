@@ -22,7 +22,7 @@ Node * node_new(char * key, int version, int len, int int1, int int2, char * str
 	if (!node) return NULL;
 
 	node->str = (char *)calloc((int)strlen(str) + 1, sizeof(char));
-	if (!node->str1) {
+	if (!node->str) {
 		free(node);
 		return NULL;
 	}
@@ -37,7 +37,6 @@ Node * node_new(char * key, int version, int len, int int1, int int2, char * str
 	node->len = len;
 	node->next = NULL;
     node->version = version;
-	node->balance = balance;
 	node->int1 = int1;
 	node->int2 = int2;
     node->left = left;
@@ -216,6 +215,7 @@ Node * find_unbal(Node * ptr) {
 		size = par_size;
 		ptr = ptr->parent;
 	}
+	return NULL;
 }
 
 Node * tree_rebuild(Node * ptr, Node * par, int size){
@@ -223,14 +223,16 @@ Node * tree_rebuild(Node * ptr, Node * par, int size){
 
 	Node * sub = list_to_node(ptr, size / 2);
 
-	sub->left = rebuild_tree(ptr, sub, size / 2);
-	sub->right = rebuild_tree(sub->right, sub, size - size / 2 - 1);
+	sub->left = tree_rebuild(ptr, sub, size / 2);
+	sub->right = tree_rebuild(sub->right, sub, size - size / 2 - 1);
 
-	sub->par = par;
+	sub->parent = par;
 }
 
 Node * tree_to_list(Node * ptr){
-	Node * list_st, list_md, list_ptr;
+	Node * list_st;
+	Node * list_md;
+	Node * list_ptr;
 
 	if(!(ptr->left)){
         list_st = NULL;
@@ -244,7 +246,7 @@ Node * tree_to_list(Node * ptr){
         list_ptr = tree_to_list(ptr->right);
 	}
 
-    Node * list_md = ptr;
+    list_md = ptr;
 
     list_md->right = list_ptr;
     if (!list_st) return list_md;
@@ -344,18 +346,18 @@ void tree_graphviz(Node * node){
         } else {
             S = 'L';
         }
-	    printf("\"%s : %d, %d, &s\" -> \"%s : %d, %d, &s\" [label = %c]\n", node->parent->key, node->parent->int1, node->parent->int2, node->parent->str, node->key, node->int1, node->int2, node->str);
+	    printf("\"%s : %d, %d, %s\" -> \"%s : %d, %d, %s\" [label = %c]\n", node->parent->key, node->parent->int1, node->parent->int2, node->parent->str, node->key, node->int1, node->int2, node->str, S);
     }
     tree_graphviz(node->right);
 }
 
 void tree_print_str(Tree * tree, char * substr){
-    if (!tree) return NULL;
+    if (!tree) return;
 
 	Node * ptr = tree->root;
-
+    char * p;
 	while (ptr){
-	    char * p = strstr(ptr->key, substr);
+	    p = strstr(ptr->key, substr);
         if (p != NULL && ptr->key == p){
             printf("Key: \"%s\", Version: \"%d\", VerCount: \"%d\", Int1: \"%d\", Int2: \"%d\", Str: \"%s\"\n", ptr->key, ptr->version, ptr->len, ptr->int1, ptr->int2, ptr->str);
             ptr = tree_find_next(ptr);
@@ -377,11 +379,11 @@ void tree_print_str(Tree * tree, char * substr){
         ptr = tree_find_next(ptr);
     }
 
-	return NULL;
+	return;
 }
 
 int node_add(Tree * tree, char * key, int int1, int int2, char * str){
-	if(!tree) return;
+	if(!tree) return -1;
 
 	if(!tree->root){
 		tree->root = node_new(key, 0, 1, int1, int2, str, NULL, NULL, NULL);
@@ -412,7 +414,7 @@ int node_add(Tree * tree, char * key, int int1, int int2, char * str){
 				return depth;
 			}
 		} else {
-		    if(!ptr_next) ptr->len += 1;
+		    if(!ptr->next) ptr->len += 1;
 
             while(ptr->next){
                 ptr->len += 1;
@@ -428,7 +430,7 @@ int node_add(Tree * tree, char * key, int int1, int int2, char * str){
 }
 
 int tree_add(Tree * tree, char * key, int int1, int int2, char * str){
-	int height = node_add(tree->root, key, info);
+	int height = node_add(tree, key, int1, int2, str);
 	if(!height){
 		return 0;
 	}
@@ -438,15 +440,15 @@ int tree_add(Tree * tree, char * key, int int1, int int2, char * str){
 		int unbal_size = node_size(unbal);
 		Node * list = tree_to_list(unbal);
 
-		Node * unbal_par = unbal->par;
+		Node * unbal_par = unbal->parent;
 		if(unbal_par){
 			if(unbal == unbal_par->left){
-				unbal_par->left = tree_rebuild(list, unbal_par, goat_size);
+				unbal_par->left = tree_rebuild(list, unbal_par, unbal_size);
 			} else {
-				unbal_par->right = tree_rebuild(list, unbal_par, goat_size);
+				unbal_par->right = tree_rebuild(list, unbal_par, unbal_size);
 			}
 		} else {
-			tree_root = tree_rebuild(list, NULL, unbal_size);
+			tree->root = tree_rebuild(list, NULL, unbal_size);
 		}
 	}
 

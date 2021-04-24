@@ -40,11 +40,11 @@ void tree_delete(Node * root);
 
 int node_add(Tree * tree, char * key, int int1, int int2, char * str);
 int tree_add(Tree * tree, char * key, int int1, int int2, char * str);
-//int tree_remove(Tree * tree, char * key, int version);  //-1 for oldest
+int tree_remove(Tree * tree, char * key, int version);  //-1 for oldest
 Node * tree_find(Tree * tree, char * key, int version);
 void tree_print(Node * ptr);
 
-void tree_graphviz(Tree *tree);
+void tree_graphviz(Node * ptr);
 int tree_load(Tree * tree, char *filep);
 
 void tree_show(Node * ptr, int level);

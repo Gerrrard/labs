@@ -90,7 +90,7 @@ int dial_find(Tree *tree) {
 	Node * ptr = tree_find(tree, key, version);
 
 	if (!ptr){
-        printf("Not found: key [ %d ] with version [ %d ] not found\n", key, version);
+        printf("Not found: key [ %s ] with version [ %d ] not found\n", key, version);
 	} else {
         printf("Found: key [ %s ] version [ %d ]\nInfo1: [ %d ]\nInfo2: [ %d ]\nInfo3: [ %s ]\n", ptr->key, ptr->version, ptr->int1, ptr->int2, ptr->str);
 	}
@@ -181,7 +181,7 @@ int dialog(const char *menu[], const int menu_size) {
 }
 
 void start(Tree *tree) {
-	char *menu[] = {"0) Quit", "1) Add", "2) Find", "3) Find max", "4) Delete", "5) Show"};
+	const char *menu[] = {"0) Quit", "1) Add", "2) Find", "3) Find max", "4) Delete", "5) Show"};
 	int menu_size = sizeof(menu)/sizeof(menu[0]);
 
 	int (*dialog_functions[])(Tree*) = {NULL, dial_add, dial_find, dial_find_max, dial_delete, dial_show};
