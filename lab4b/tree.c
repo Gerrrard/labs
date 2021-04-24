@@ -93,7 +93,7 @@ void tree_print(Node * ptr){
 
 	tree_print(ptr->right);
 	printf("Key: [ %s ], Version: [ %d ], VerCount: [ %d ], Int1: [ %d ], Int2: [ %d ], Str: [ %s ]\n", ptr->key, ptr->version, ptr->len, ptr->int1, ptr->int2, ptr->str);
-	next_print(ptr);
+	if(ptr->next) next_print(ptr);
 	tree_print(ptr->left);
 }
 
@@ -215,7 +215,6 @@ Node * find_unbal(Node * ptr) {
 		size = par_size;
 		ptr = ptr->parent;
 	}
-	return NULL;
 }
 
 Node * tree_rebuild(Node * ptr, Node * par, int size){
@@ -363,7 +362,7 @@ void tree_print_str(Tree * tree, char * substr){
             ptr = tree_find_next(ptr);
             break;
         }
-		if (strcmp(key, ptr->key) > 0){
+		if (strcmp(substr, ptr->key) > 0){
 			ptr = ptr->right;
 		} else {
 			ptr = ptr->left;
@@ -400,7 +399,9 @@ int node_add(Tree * tree, char * key, int int1, int int2, char * str){
 				ptr = ptr->right;
 				depth++;
 			} else {
-				ptr->right = node_new(key, 0, ptr->right->len + 1, int1, int2, str, NULL, NULL, ptr->right);
+			    int k = 1;
+			    if(ptr->right) k = ptr->right->len + 1;
+				ptr->right = node_new(key, 0, k, int1, int2, str, NULL, NULL, ptr->right);
 
 				return depth;
 			}
@@ -409,7 +410,9 @@ int node_add(Tree * tree, char * key, int int1, int int2, char * str){
 				ptr = ptr->left;
 				depth++;
 			} else {
-				ptr->left = node_new(key, 0, ptr->left->len + 1, int1, int2, str, NULL, NULL, ptr->left);
+			    int k = 1;
+			    if(ptr->right) k = ptr->left->len + 1;
+				ptr->left = node_new(key, 0, k, int1, int2, str, NULL, NULL, ptr->left);
 
 				return depth;
 			}
@@ -436,7 +439,8 @@ int tree_add(Tree * tree, char * key, int int1, int int2, char * str){
 	}
 
 	if(height > (logf(2)/logf(node_size(tree->root)))){
-		Node * unbal = find_unbal(tree_find(tree, key, 0));
+        Node * start = tree_find(tree, key, 0);
+		Node * unbal = find_unbal(start);
 		int unbal_size = node_size(unbal);
 		Node * list = tree_to_list(unbal);
 

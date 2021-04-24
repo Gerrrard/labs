@@ -6,20 +6,13 @@
 int main(int argc, const char** argv) {
 	Tree * tree = tree_new();
 
-	tree_load(tree, "tree.txt");
+	//tree_load(tree, "tree.txt");
 
-	/*tree_add(tree, "1 a", "2 a", 1);
-    tree_add(tree, "1 b", "2 b", 1);
-    tree_add(tree, "1 c", "2 c", 2);
-    tree_add(tree, "1 d", "2 d", 2);
-    tree_add(tree, "1 e", "2 e", 2);
-    tree_add(tree, "1 f", "2 f", 3);
-    tree_add(tree, "1 g", "2 g", 4);
-    tree_add(tree, "1 h", "2 h", 5);
-    tree_add(tree, "1 i", "2 i", 6);
-    tree_add(tree, "1 j", "2 j", 7);
-    tree_add(tree, "1 k", "2 k", 1);
-    tree_add(tree, "1 l", "2 l", 10);*/
+	/*tree_add(tree, "key1", 1, 5, " a");
+    tree_add(tree, "key2", 2, 4, " b");
+    tree_add(tree, "key2", 3, 3, " c");
+    tree_add(tree, "key3", 4, 2, " d");
+    tree_add(tree, "key4", 5, 1, " e");*/
 
 	start(tree);
 

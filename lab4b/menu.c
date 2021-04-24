@@ -101,11 +101,7 @@ int dial_find(Tree *tree) {
 int dial_find_max(Tree *tree) {
 	printf("---MAX KEY---\n");
 
-    printf("Enter key (string):\n");
-	char * key;
-	if(!(key = get_str())) return 1;
-
-	Node * ptr = tree_find_max(tree->root);
+    Node * ptr = tree_find_max(tree->root);
 
 	if (!ptr){
         printf("Tree is empty\n");
@@ -116,7 +112,7 @@ int dial_find_max(Tree *tree) {
 	return 0;
 }
 
-int dial_delete(Tree *tree) {
+/*int dial_delete(Tree *tree) {
 	printf("---DELETE---\n");
 
     printf("Enter key (string):\n");
@@ -126,7 +122,7 @@ int dial_delete(Tree *tree) {
 	tree_remove(tree, key, version);
 
 	return 0;
-}
+}*/
 
 int dial_show(Tree *tree) {
 	printf("---SHOW---\n");
@@ -181,10 +177,10 @@ int dialog(const char *menu[], const int menu_size) {
 }
 
 void start(Tree *tree) {
-	const char *menu[] = {"0) Quit", "1) Add", "2) Find", "3) Find max", "4) Delete", "5) Show"};
+	const char *menu[] = {"0) Quit", "1) Add", "2) Find", "3) Find max", /*"4) Delete",*/ "5) Show"};
 	int menu_size = sizeof(menu)/sizeof(menu[0]);
 
-	int (*dialog_functions[])(Tree*) = {NULL, dial_add, dial_find, dial_find_max, dial_delete, dial_show};
+	int (*dialog_functions[])(Tree*) = {NULL, dial_add, dial_find, dial_find_max,/* dial_delete,*/ dial_show};
 
 	int opt;
 	while((opt = dialog(menu, menu_size))) {
