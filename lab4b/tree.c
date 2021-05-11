@@ -49,6 +49,23 @@ Node * node_new(char * key, int version, int len, int int1, int int2, char * str
 	return node;
 }
 
+int n_side(Node * ptr){
+	if (!ptr) return 0;
+	if (!ptr->parent) return 0;
+
+	if (ptr->parent->right == ptr) {
+		return 1;
+	} else {
+		return -1;
+	}
+}
+
+int n_size(Node * ptr){
+	if (!ptr) return 0;
+
+    return n_size(ptr->left) + n_size(ptr->right) + 1;
+}
+
 void tree_delete(Node * ptr){
 	if (!ptr) return;
 
@@ -57,7 +74,16 @@ void tree_delete(Node * ptr){
 	free(ptr->key);
 	free(ptr->str);
 
-	next_delete(ptr);
+	Node * pptr = ptr->next;
+	Node * temp;
+
+	while(pptr){
+        temp = pptr;
+        free(temp->key);
+        free(temp->str);
+        pptr = temp->next;
+        free(temp);
+	}
 
 	free(ptr);
 }
@@ -82,60 +108,26 @@ Node * tree_find_max(Node * ptr){
 	return ptr;
 }
 
-int node_size(Node * ptr){
-	if(!ptr) return 0;
-
-    return node_size(ptr->left) + node_size(ptr->right) + 1;
-}
-
 void tree_print(Node * ptr){
     if (!ptr) return;
 
 	tree_print(ptr->right);
 	printf("Key: [ %s ], Version: [ %d ], VerCount: [ %d ], Int1: [ %d ], Int2: [ %d ], Str: [ %s ]\n", ptr->key, ptr->version, ptr->len, ptr->int1, ptr->int2, ptr->str);
-	if(ptr->next) next_print(ptr);
+	if (ptr->next) next_print(ptr);
 	tree_print(ptr->left);
 }
 
-int n_side(Node * ptr){
-	if (!ptr) return 0;
-	if (!ptr->parent) return 0;
-
-	if (ptr->parent->right == ptr) {
-		return 1;
-	} else {
-		return -1;
-	}
-}
-
-void tree_show(Node * ptr, int level){
-    if (!ptr) return;
-
-    tree_show(ptr->left, level + 1);
-
-    for(int i = 0; i < level; i++) {
-        printf("\t");
-    }
-    char help;
-    if (n_side(ptr) < 0) help = '\\';
-    else if (n_side(ptr) > 0) help = '/';
-    else help = ' ';
-    printf("%c ([%s], [%d], [%d], [%d], [%d], [%s])\n", help, ptr->key, ptr->version, ptr->len, ptr->int1, ptr->int2, ptr->str);
-
-    tree_show(ptr->right, level + 1);
-}
-
 void next_print(Node * ptr){
-    if(!ptr) return;
+    if (!ptr) return;
 
     printf("Key: \"%s\", Version: \"%d\", VerCount: \"%d\", Int1: \"%d\", Int2: \"%d\", Str: \"%s\"\n", ptr->key, ptr->version, ptr->len, ptr->int1, ptr->int2, ptr->str);
     next_print(ptr->next);
 }
 
 void next_delete(Node * ptr){
-    if(!ptr) return;
+    if (!ptr) return;
 
-    if(n_side(ptr) == 1){
+    if (n_side(ptr) == 1) {
         ptr->parent->right->len -= 1;
     } else {
         ptr->parent->left->len -= 1;
@@ -177,20 +169,20 @@ Node * tree_find(Tree * tree, char * key, int version){
 
 	Node * ptr = tree->root;
 
-	while (ptr){
-		if (strcmp(key, ptr->key) == 0){
-            if (version  != -1){
-                while (ptr->next){
+	while (ptr) {
+		if (strcmp(key, ptr->key) == 0) {
+            if (version  != -1) {
+                while (ptr->next) {
                     ptr = ptr->next;
                 }
                 return ptr;
             } else {
-                while (ptr->next){
+                while (ptr->next) {
                     if (version == ptr->version) return ptr;
                     ptr = ptr->next;
                 }
             }
-		} else if (strcmp(key, ptr->key) > 0){
+		} else if (strcmp(key, ptr->key) > 0) {
 			ptr = ptr->right;
 		} else {
 			ptr = ptr->left;
@@ -200,70 +192,82 @@ Node * tree_find(Tree * tree, char * key, int version){
 	return NULL;
 }
 
-Node * find_unbal(Node * ptr) {
-	int size = 1, height = 1, par_size;
+void tree_show(Node * ptr, int level){
+    if (!ptr) return;
 
-	while(ptr->parent){
-        if(n_side(ptr) == -1) {par_size = 1 + size + node_size(ptr->parent->right);}
-        else { par_size = 1 + size + node_size(ptr->parent->left); }
+    tree_show(ptr->left, level + 1);
 
-		if(height > (logf(2)/logf(par_size))){
-			return ptr->parent;
+    for (int i = 0; i < level; i++) {
+        printf("\t");
+    }
+    char help;
+    if (n_side(ptr) < 0) help = '\\';
+    else if (n_side(ptr) > 0) help = '/';
+    else help = ' ';
+    printf("%c ([%s], [%d], [%d], [%d], [%d], [%s])\n", help, ptr->key, ptr->version, ptr->len, ptr->int1, ptr->int2, ptr->str);
+
+    tree_show(ptr->right, level + 1);
+}
+
+void tree_graphviz(Node * node){
+    if (!node) return;
+
+    tree_graphviz(node->left);
+    if (node->parent) {
+        char S;
+        if (n_side(node) > 0) {
+            S = 'R';
+        } else {
+            S = 'L';
+        }
+	    printf("\"%s : %d, %d, %s\" -> \"%s : %d, %d, %s\" [label = %c]\n", node->parent->key, node->parent->int1, node->parent->int2, node->parent->str, node->key, node->int1, node->int2, node->str, S);
+    }
+    tree_graphviz(node->right);
+}
+
+void tree_print_str(Tree * tree, char * substr){
+    if (!tree) return;
+
+	Node * ptr = tree->root;
+	Node * temp;
+    char * p;
+	while (ptr) {
+	    p = strstr(ptr->key, substr);
+        if (p != NULL && ptr->key == p){
+            temp = tree_find_prev(ptr);
+
+            if (temp) {
+                p = strstr(temp->key, substr);
+                while (p != NULL && temp->key == p) {
+                    ptr = temp;
+
+                    temp = tree_find_prev(ptr);
+                    if (temp == NULL) break;
+                    p = strstr(temp->key, substr);
+                }
+            }
+            printf("Key: \"%s\", Version: \"%d\", VerCount: \"%d\", Int1: \"%d\", Int2: \"%d\", Str: \"%s\"\n", ptr->key, ptr->version, ptr->len, ptr->int1, ptr->int2, ptr->str);
+
+            ptr = tree_find_next(ptr);
+            break;
+        }
+		if (strcmp(substr, ptr->key) > 0) {
+			ptr = ptr->right;
+		} else {
+			ptr = ptr->left;
 		}
-
-		height++;
-		size = par_size;
-		ptr = ptr->parent;
-	}
-}
-
-Node * tree_rebuild(Node * ptr, Node * par, int size){
-	if(size <= 0) return NULL;
-
-	Node * sub = list_to_node(ptr, size / 2);
-
-	sub->left = tree_rebuild(ptr, sub, size / 2);
-	sub->right = tree_rebuild(sub->right, sub, size - size / 2 - 1);
-
-	sub->parent = par;
-}
-
-Node * tree_to_list(Node * ptr){
-	Node * list_st;
-	Node * list_md;
-	Node * list_ptr;
-
-	if(!(ptr->left)){
-        list_st = NULL;
-	} else {
-        list_st = tree_to_list(ptr->left);
 	}
 
-	if(!(ptr->right)){
-        list_ptr = NULL;
-	} else {
-        list_ptr = tree_to_list(ptr->right);
-	}
-
-    list_md = ptr;
-
-    list_md->right = list_ptr;
-    if (!list_st) return list_md;
-
-    Node * last = list_st;
-
-    while(last->right) {
-    	last = last->right;
+    while (ptr) {
+        p = strstr(ptr->key, substr);
+        if (p == NULL || ptr->key != p) {
+            break;
+        }
+        printf("Key: \"%s\", Version: \"%d\", VerCount: \"%d\", Int1: \"%d\", Int2: \"%d\", Str: \"%s\"\n", ptr->key, ptr->version, ptr->len, ptr->int1, ptr->int2, ptr->str);
+        ptr = tree_find_next(ptr);
     }
 
-    last->right = list_md;
-    return list_st;
-}
-
-Node * list_to_node(Node * ptr, int ind){
-	for(int i = 0; i < ind; i++ )ptr = ptr->right;
-
-	return ptr;
+	return;
 }
 
 int tree_load(Tree * tree, char *filep){
@@ -281,7 +285,7 @@ int tree_load(Tree * tree, char *filep){
     fseek(file, 0L , SEEK_END);
     size = ftell(file);
     rewind(file);
-    buffer = calloc(1, size+1);
+    buffer = calloc(1, size + 1);
     if (!buffer) {
         fclose(file);
         printf("ERROR: Error in buffer alloc\n");
@@ -334,57 +338,10 @@ int tree_load(Tree * tree, char *filep){
     return 0;
 }
 
-void tree_graphviz(Node * node){
-    if (!node) return;
-
-    tree_graphviz(node->left);
-    if (node->parent) {
-        char S;
-        if(n_side(node) > 0){
-            S = 'R';
-        } else {
-            S = 'L';
-        }
-	    printf("\"%s : %d, %d, %s\" -> \"%s : %d, %d, %s\" [label = %c]\n", node->parent->key, node->parent->int1, node->parent->int2, node->parent->str, node->key, node->int1, node->int2, node->str, S);
-    }
-    tree_graphviz(node->right);
-}
-
-void tree_print_str(Tree * tree, char * substr){
-    if (!tree) return;
-
-	Node * ptr = tree->root;
-    char * p;
-	while (ptr){
-	    p = strstr(ptr->key, substr);
-        if (p != NULL && ptr->key == p){
-            printf("Key: \"%s\", Version: \"%d\", VerCount: \"%d\", Int1: \"%d\", Int2: \"%d\", Str: \"%s\"\n", ptr->key, ptr->version, ptr->len, ptr->int1, ptr->int2, ptr->str);
-            ptr = tree_find_next(ptr);
-            break;
-        }
-		if (strcmp(substr, ptr->key) > 0){
-			ptr = ptr->right;
-		} else {
-			ptr = ptr->left;
-		}
-	}
-
-    while(ptr){
-        p = strstr(ptr->key, substr);
-        if (p == NULL || ptr->key != p){
-            break;
-        }
-        printf("Key: \"%s\", Version: \"%d\", VerCount: \"%d\", Int1: \"%d\", Int2: \"%d\", Str: \"%s\"\n", ptr->key, ptr->version, ptr->len, ptr->int1, ptr->int2, ptr->str);
-        ptr = tree_find_next(ptr);
-    }
-
-	return;
-}
-
 int node_add(Tree * tree, char * key, int int1, int int2, char * str){
-	if(!tree) return -1;
+	if (!tree) return -1;
 
-	if(!tree->root){
+	if (!tree->root) {
 		tree->root = node_new(key, 0, 1, int1, int2, str, NULL, NULL, NULL);
 		return 0;
 	}
@@ -393,33 +350,29 @@ int node_add(Tree * tree, char * key, int int1, int int2, char * str){
 
 	Node * ptr = tree->root;
 
-	while(ptr){
-		if (strcmp(key, ptr->key) > 0){
+	while (ptr){
+		if (strcmp(key, ptr->key) > 0) {
 			if (ptr->right){
 				ptr = ptr->right;
 				depth++;
 			} else {
-			    int k = 1;
-			    if(ptr->right) k = ptr->right->len + 1;
-				ptr->right = node_new(key, 0, k, int1, int2, str, NULL, NULL, ptr->right);
+				ptr->right = node_new(key, 0, 1, int1, int2, str, NULL, NULL, ptr);
 
 				return depth;
 			}
-		} else if (strcmp(key, ptr->key) < 0){
-			if (ptr->left){
+		} else if (strcmp(key, ptr->key) < 0) {
+			if (ptr->left) {
 				ptr = ptr->left;
 				depth++;
 			} else {
-			    int k = 1;
-			    if(ptr->right) k = ptr->left->len + 1;
-				ptr->left = node_new(key, 0, k, int1, int2, str, NULL, NULL, ptr->left);
+				ptr->left = node_new(key, 0, 1, int1, int2, str, NULL, NULL, ptr);
 
 				return depth;
 			}
 		} else {
-		    if(!ptr->next) ptr->len += 1;
+		    if (!ptr->next) ptr->len += 1;
 
-            while(ptr->next){
+            while (ptr->next) {
                 ptr->len += 1;
                 ptr = ptr->next;
             }
@@ -432,31 +385,196 @@ int node_add(Tree * tree, char * key, int int1, int int2, char * str){
 	}
 }
 
-int tree_add(Tree * tree, char * key, int int1, int int2, char * str){
-	int height = node_add(tree, key, int1, int2, str);
-	if(!height){
-		return 0;
+Node * list_to_node(Node * ptr, int ind){
+	for (int i = 0; i < ind; i++ ) ptr = ptr->right;
+
+	return ptr;
+}
+
+Node * tree_to_list(Node * ptr){
+	Node * list_st;
+	Node * list_md;
+	Node * list_end;
+
+	if (!(ptr->left)) {
+        list_st = NULL;
+	} else {
+        list_st = tree_to_list(ptr->left);
 	}
 
-	if(height > (logf(2)/logf(node_size(tree->root)))){
-        Node * start = tree_find(tree, key, 0);
-		Node * unbal = find_unbal(start);
-		int unbal_size = node_size(unbal);
-		Node * list = tree_to_list(unbal);
+	if (!(ptr->right)) {
+        list_end = NULL;
+	} else {
+        list_end = tree_to_list(ptr->right);
+	}
 
-		Node * unbal_par = unbal->parent;
-		if(unbal_par){
-			if(unbal == unbal_par->left){
-				unbal_par->left = tree_rebuild(list, unbal_par, unbal_size);
-			} else {
-				unbal_par->right = tree_rebuild(list, unbal_par, unbal_size);
-			}
+    list_md = ptr;
+
+    list_md->right = list_end;
+    if (!list_st) return list_md;
+
+    Node * last = list_st;
+
+    while (last->right) {
+    	last = last->right;
+    }
+
+    last->right = list_md;
+    return list_st;
+}
+
+Node * tree_rebuild(Node * ptr, Node * par, int size){
+	if (size <= 0) return NULL;
+
+	Node * sub = list_to_node(ptr, size / 2);
+
+	sub->left = tree_rebuild(ptr, sub, size / 2);
+	sub->right = tree_rebuild(sub->right, sub, size - size / 2 - 1);
+
+	sub->parent = par;
+}
+
+Node * find_unbal(Node * ptr) {
+	Node * Nd = NULL;
+
+	while (ptr->parent) {
+	    if (fabs(n_size(ptr->parent->left) - n_size(ptr->parent->right)) > 1) Nd = ptr->parent;
+
+        ptr = ptr->parent;
+	}
+
+	return Nd;
+}
+
+int tree_add(Tree * tree, char * key, int int1, int int2, char * str){
+	int height = node_add(tree, key, int1, int2, str);
+	if (!height) return 0;
+
+	Node * start = tree_find(tree, key, 0);
+    Node * unbal = find_unbal(start);
+
+    if (unbal) {
+        int unbal_size = n_size(unbal);
+        Node * list = tree_to_list(unbal);
+
+        Node * unbal_par = unbal->parent;
+
+        if (unbal_par) {
+            if (n_side(unbal) == -1) {
+                unbal_par->left = tree_rebuild(list, unbal_par, unbal_size);
+            } else {
+                unbal_par->right = tree_rebuild(list, unbal_par, unbal_size);
+            }
+        } else {
+            tree->root = tree_rebuild(list, NULL, unbal_size);
+        }
+    }
+	return 0;
+}
+
+int node_delete(Tree * tree, Node * ptr){
+	if (!tree) return 1;
+	if (!ptr) return 2;
+
+	Node * child;
+
+	if (ptr->left && ptr->right) {
+		Node * ptr_next = tree_find_min(ptr->right);
+
+		child = ptr_next->right;
+
+		if (n_side(ptr_next) < 0) {
+			ptr_next->parent->left = child;
 		} else {
-			tree->root = tree_rebuild(list, NULL, unbal_size);
+			ptr_next->parent->right = child;
 		}
+
+		if (child) child->parent = ptr_next->parent;
+
+		if (ptr->next) next_delete(ptr->next);
+
+		ptr->next = ptr_next->next;
+        ptr->int1 = ptr_next->int1;
+        ptr->int2 = ptr_next->int2;
+        ptr->len = ptr_next->len;
+        ptr->version = ptr_next->version;
+
+		char * buffer;
+
+		buffer = ptr->str;
+		ptr->str = ptr_next->str;
+		ptr_next->str = buffer;
+		free(ptr_next->str);
+
+		buffer = ptr->key;
+		ptr->key = ptr_next->key;
+		ptr_next->key = buffer;
+		free(ptr_next->key);
+
+		free(ptr_next);
+
+	} else {
+		if (ptr->left) {
+			child = ptr->left;
+		} else if (ptr->right){
+			child = ptr->right;
+		} else {
+			child = NULL;
+		}
+
+		if (child) child->parent = ptr->parent;
+        if (ptr->next) next_delete(ptr->next);
+
+		int side = n_side(ptr);
+
+		if (side > 0) {
+			ptr->parent->right = child;
+        } else if (side < 0) {
+			ptr->parent->left = child;
+		} else {
+			tree->root = child;
+		}
+
+		free(ptr->str);
+		free(ptr->key);
+		free(ptr);
 	}
 
 	return 0;
 }
 
-int tree_remove(Tree * tree, char * key, int version){}
+void tree_remove(Tree * tree, char * key, int version){
+	Node * ptr = tree_find(tree, key, 0);
+	if (!ptr) return;
+
+	if (version == -1 && ptr->next) {
+        while (ptr->next) {
+            ptr = ptr->next;
+        }
+        next_delete(ptr);
+        return;
+	}
+
+    Node * start = ptr->parent;
+
+	node_delete(tree, ptr);
+
+    Node * unbal = find_unbal(start);
+
+    if (unbal) {
+        int unbal_size = n_size(unbal);
+        Node * list = tree_to_list(unbal);
+
+        Node * unbal_par = unbal->parent;
+
+        if (unbal_par) {
+            if (n_side(unbal) == -1) {
+                unbal_par->left = tree_rebuild(list, unbal_par, unbal_size);
+            } else {
+                unbal_par->right = tree_rebuild(list, unbal_par, unbal_size);
+            }
+        } else {
+            tree->root = tree_rebuild(list, NULL, unbal_size);
+        }
+    }
+}

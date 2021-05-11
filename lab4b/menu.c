@@ -20,7 +20,7 @@ int get_int(int * a) {
 	return 0;
 }
 
-char* get_str() {
+char * get_str() {
     char buf[81];
     char *res = NULL;
     int len = 0;
@@ -55,19 +55,19 @@ int dial_add(Tree *tree) {
 
 	printf("Enter key (string):\n");
 	char * key;
-	if(!(key = get_str())) return 1;
+	if (!(key = get_str())) return 1;
 
 	printf("Enter info1 (int):\n");
 	int int1;
-	if(get_int(&int1)) return 1;
+	if (get_int(&int1)) return 1;
 
     printf("Enter info2 (int):\n");
 	int int2;
-	if(get_int(&int2)) return 1;
+	if (get_int(&int2)) return 1;
 
-	printf("Enter key (string):\n");
+	printf("Enter str (string):\n");
 	char * str;
-	if(!(str = get_str())) return 1;
+	if (!(str = get_str())) return 1;
 
 	tree_add(tree, key, int1, int2, str);
 
@@ -81,19 +81,21 @@ int dial_find(Tree *tree) {
 
     printf("Enter key (string):\n");
 	char * key;
-	if(!(key = get_str())) return 1;
+	if (!(key = get_str())) return 1;
 
     printf("Enter version of element (int):\n");
 	int version;
-	if(get_int(&version)) return 1;
+	if (get_int(&version)) return 1;
 
 	Node * ptr = tree_find(tree, key, version);
 
-	if (!ptr){
+	if (!ptr) {
         printf("Not found: key [ %s ] with version [ %d ] not found\n", key, version);
 	} else {
         printf("Found: key [ %s ] version [ %d ]\nInfo1: [ %d ]\nInfo2: [ %d ]\nInfo3: [ %s ]\n", ptr->key, ptr->version, ptr->int1, ptr->int2, ptr->str);
 	}
+
+	free(key);
 
 	return 0;
 }
@@ -103,7 +105,7 @@ int dial_find_max(Tree *tree) {
 
     Node * ptr = tree_find_max(tree->root);
 
-	if (!ptr){
+	if (!ptr) {
         printf("Tree is empty\n");
 	} else {
 	    printf("Max key: key [ %s ] VerCount [ %d ]\nInfo1: [ %d ]\nInfo2: [ %d ]\nInfo3: [ %s ]\n", ptr->key, ptr->len, ptr->int1, ptr->int2, ptr->str);
@@ -112,24 +114,30 @@ int dial_find_max(Tree *tree) {
 	return 0;
 }
 
-/*int dial_delete(Tree *tree) {
+int dial_delete(Tree *tree) {
 	printf("---DELETE---\n");
 
     printf("Enter key (string):\n");
 	char * key;
-	if(!(key = get_str())) return 1;
+	if (!(key = get_str())) return 1;
+
+	printf("Enter -1 to delete LAST version or other number if not\n");
+	int version;
+	if (get_int(&version)) return 1;
 
 	tree_remove(tree, key, version);
 
+	free(key);
+
 	return 0;
-}*/
+}
 
 int dial_show(Tree *tree) {
 	printf("---SHOW---\n");
 
 	printf("Enter a number:\n1) Print all\n2) Print from substr\n3) Print as a tree\n4) Graphviz (DOT)\n");
 	int option;
-	if(get_int(&option)) return 1;
+	if (get_int(&option)) return 1;
 
 	if (option == 1) {
 		tree_print(tree->root);
@@ -137,10 +145,11 @@ int dial_show(Tree *tree) {
 
         printf("Enter substring (string):\n");
         char * subs;
-        if(!(subs = get_str())) return 1;
+        if (!(subs = get_str())) return 1;
 
         tree_print_str(tree, subs);
         printf("\n");
+        free(sub);
 
     } else if (option == 3) {
 		tree_show(tree->root, 0);
@@ -156,10 +165,10 @@ int dial_show(Tree *tree) {
 }
 
 int dialog(const char *menu[], const int menu_size) {
-	char *error_msg = "";
+	char * error_msg = "";
 	int opt;
 
-	do{
+	do {
 		printf("%s\n", error_msg);
 		error_msg = "Invalid input. Repeate.";
 
@@ -168,7 +177,7 @@ int dialog(const char *menu[], const int menu_size) {
 		}
 		printf("%s", "Make your choice: ");
 
-		if(get_int(&opt)) {
+		if (get_int(&opt)) {
 			opt = 0;
 		}
 	} while (opt < 0 || opt >= menu_size);
@@ -176,16 +185,18 @@ int dialog(const char *menu[], const int menu_size) {
 	return opt;
 }
 
-void start(Tree *tree) {
-	const char *menu[] = {"0) Quit", "1) Add", "2) Find", "3) Find max", /*"4) Delete",*/ "5) Show"};
+void start(Tree * tree) {
+	const char * menu[] = {"0) Quit", "1) Add", "2) Find", "3) Find max", "4) Delete", "5) Show"};
 	int menu_size = sizeof(menu)/sizeof(menu[0]);
 
-	int (*dialog_functions[])(Tree*) = {NULL, dial_add, dial_find, dial_find_max,/* dial_delete,*/ dial_show};
+	int (*dialog_functions[])(Tree*) = {NULL, dial_add, dial_find, dial_find_max, dial_delete, dial_show};
 
 	int opt;
-	while((opt = dialog(menu, menu_size))) {
+	while ((opt = dialog(menu, menu_size))) {
 		if (opt == 0 || dialog_functions[opt](tree)) break;
 	}
 
 	printf("\nProgram finished.\n");
+	tree_delete(tree->root);
+    free(tree);
 }
