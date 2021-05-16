@@ -52,6 +52,8 @@ void tree_remove(Tree * tree, char * key, int version);  //-1 for oldest
 
 int tree_load(Tree * tree, char *filep);
 
-
+char * rand_str(int len);
+int rand_int(int max);
+int tree_test(int count);
 
 #endif

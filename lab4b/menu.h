@@ -11,6 +11,7 @@ int dial_delete(Tree *tree);
 int dial_find(Tree *tree);
 int dial_find_max(Tree *tree);
 int dial_show(Tree *tree);
+int dial_test();
 void start(Tree *tree);
 
 #endif

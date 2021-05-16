@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <time.h>
 
 #include "tree.h"
 
@@ -127,12 +128,6 @@ void next_print(Node * ptr){
 void next_delete(Node * ptr){
     if (!ptr) return;
 
-    if (n_side(ptr) == 1) {
-        ptr->parent->right->len -= 1;
-    } else {
-        ptr->parent->left->len -= 1;
-    }
-
     next_delete(ptr->next);
 
     free(ptr->key);
@@ -171,16 +166,21 @@ Node * tree_find(Tree * tree, char * key, int version){
 
 	while (ptr) {
 		if (strcmp(key, ptr->key) == 0) {
-            if (version  != -1) {
+            if (version == -1) {
                 while (ptr->next) {
                     ptr = ptr->next;
                 }
                 return ptr;
+            } else if (version == 0) {
+                    return ptr;
             } else {
                 while (ptr->next) {
-                    if (version == ptr->version) return ptr;
+                    if (ptr->version == version) return ptr;
                     ptr = ptr->next;
                 }
+                if (ptr->version == version) return ptr;
+                printf("ERROR: no such version");
+                return NULL;
             }
 		} else if (strcmp(key, ptr->key) > 0) {
 			ptr = ptr->right;
@@ -478,7 +478,7 @@ int node_delete(Tree * tree, Node * ptr){
 
 	Node * child;
 
-	if (ptr->left && ptr->right) {
+    if (ptr->left && ptr->right) {
 		Node * ptr_next = tree_find_min(ptr->right);
 
 		child = ptr_next->right;
@@ -512,7 +512,6 @@ int node_delete(Tree * tree, Node * ptr){
 		free(ptr_next->key);
 
 		free(ptr_next);
-
 	} else {
 		if (ptr->left) {
 			child = ptr->left;
@@ -523,6 +522,7 @@ int node_delete(Tree * tree, Node * ptr){
 		}
 
 		if (child) child->parent = ptr->parent;
+
         if (ptr->next) next_delete(ptr->next);
 
 		int side = n_side(ptr);
@@ -548,18 +548,36 @@ void tree_remove(Tree * tree, char * key, int version){
 	if (!ptr) return;
 
 	if (version == -1 && ptr->next) {
-        while (ptr->next) {
+        Node * prev = ptr;
+        Node * pptr = ptr;
+        ptr = ptr->next;
+        while(ptr->next){
+            prev = ptr;
             ptr = ptr->next;
         }
-        next_delete(ptr);
+        prev->next = NULL;
+
+        if (n_side(pptr) == 1) {
+            pptr->len -= 1;
+        } else {
+            pptr->len -= 1;
+        }
+
+        free(ptr->key);
+        free(ptr->str);
+        free(ptr);
         return;
 	}
 
     Node * start = ptr->parent;
 
-	node_delete(tree, ptr);
+    int is_r = (ptr == tree->root) ? 1 : 0;
 
-    Node * unbal = find_unbal(start);
+    node_delete(tree, ptr);
+
+    Node * unbal;
+    if(!is_r) unbal = find_unbal(start);
+    else unbal = tree->root;
 
     if (unbal) {
         int unbal_size = n_size(unbal);
@@ -577,4 +595,80 @@ void tree_remove(Tree * tree, char * key, int version){
             tree->root = tree_rebuild(list, NULL, unbal_size);
         }
     }
+}
+
+char * rand_str(int len) {
+    char * str = (char *)calloc(len + 1, sizeof(char));
+    if (!str) return NULL;
+
+    char * cur = str;
+    int n = 26;
+    int d = 'a';
+    for (int i = 0; i < len; i++) {
+        int r = rand()%n;
+        *cur = d + r;
+        cur++;
+    }
+    *cur = '\0';
+
+    return str;
+}
+
+int rand_int(int max) {
+    return rand()%max;
+}
+
+int tree_test(int count) {
+    Tree * tree = tree_new();
+
+    srand(time(NULL));
+
+    char * keys = (char *)calloc(count, sizeof(char *));
+    if (!keys) return 1;
+
+    double t_add = 0;
+    int len = 16;
+    int num = 0;
+
+    while (num < count) {
+        if (num % 10000 == 0){
+            printf("Number:\t%d\nLength:\t%d\n", num, len);
+            printf("Addition: average time\t%.10f\n", (t_add == 0) ? 0 : t_add/num);
+        }
+        char * key = rand_str(len);
+        int int1 = rand_int(100);
+        int int2 = rand_int(200);
+        char * str = rand_str(len);
+
+        if (!key || !str) {
+            free(str);
+            free(keys);
+
+            tree_delete(tree->root);
+
+            printf("ERROR: Memory is over\n");
+            return 1;
+        }
+
+        keys[num] = key;
+        num++;
+
+        clock_t t = clock();
+        tree_add(tree, key, int1, int2, str);
+
+        t_add += (double)(clock() - t)/CLOCKS_PER_SEC;
+
+        free(key);
+        free(str);
+    }
+
+    printf("Number:\t%d\nLength:\t%d\n", num, len);
+    printf("Addition: average time\t%.10f\n", (t_add == 0) ? 0 : t_add/num);
+
+    free(keys);
+
+    tree_delete(tree->root);
+    free(tree);
+
+    return 0;
 }
