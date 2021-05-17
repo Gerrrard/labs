@@ -43,9 +43,14 @@ void tree_show(Node * ptr, int level);
 void tree_print_str(Tree * tree, char * substr);
 
 int node_add(Tree * tree, char * key, int int1, int int2, char * str);
-Node * tree_to_list(Node * ptr);
-Node * list_to_node(Node * ptr, int ind);
-Node * tree_rebuild(Node * ptr, Node * par, int size);
+Node * tree_to_list1(Node * ptr);
+Node * list_to_node1(Node * ptr, int ind);
+Node * tree_rebuild1(Node * ptr, Node * par, int size);
+
+void tree_rebuild2(Tree * tree, Node * unbal, Node * unbal_par);
+int tree_to_arr(Node * ptr, Node ** arr, int ind);
+Node * arr_to_tree(Node ** arr, int ind, int size);
+
 int tree_add(Tree * tree, char * key, int int1, int int2, char * str);
 
 void tree_remove(Tree * tree, char * key, int version);  //-1 for oldest

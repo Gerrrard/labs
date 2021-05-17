@@ -385,13 +385,25 @@ int node_add(Tree * tree, char * key, int int1, int int2, char * str){
 	}
 }
 
-Node * list_to_node(Node * ptr, int ind){
+Node * find_unbal(Node * ptr) {
+	Node * Nd = NULL;
+
+	while (ptr->parent) {
+	    if (fabs(n_size(ptr->parent->left) - n_size(ptr->parent->right)) > 1) Nd = ptr->parent;
+
+        ptr = ptr->parent;
+	}
+
+	return Nd;
+}
+
+Node * list_to_node1(Node * ptr, int ind){
 	for (int i = 0; i < ind; i++ ) ptr = ptr->right;
 
 	return ptr;
 }
 
-Node * tree_to_list(Node * ptr){
+Node * tree_to_list1(Node * ptr){
 	Node * list_st;
 	Node * list_md;
 	Node * list_end;
@@ -399,13 +411,13 @@ Node * tree_to_list(Node * ptr){
 	if (!(ptr->left)) {
         list_st = NULL;
 	} else {
-        list_st = tree_to_list(ptr->left);
+        list_st = tree_to_list1(ptr->left);
 	}
 
 	if (!(ptr->right)) {
         list_end = NULL;
 	} else {
-        list_end = tree_to_list(ptr->right);
+        list_end = tree_to_list1(ptr->right);
 	}
 
     list_md = ptr;
@@ -423,27 +435,62 @@ Node * tree_to_list(Node * ptr){
     return list_st;
 }
 
-Node * tree_rebuild(Node * ptr, Node * par, int size){
+Node * tree_rebuild1(Node * ptr, Node * par, int size){
 	if (size <= 0) return NULL;
 
-	Node * sub = list_to_node(ptr, size / 2);
+	Node * sub = list_to_node1(ptr, size / 2);
 
-	sub->left = tree_rebuild(ptr, sub, size / 2);
-	sub->right = tree_rebuild(sub->right, sub, size - size / 2 - 1);
+	sub->left = tree_rebuild1(ptr, sub, size / 2);
+	sub->right = tree_rebuild1(sub->right, sub, size - size / 2 - 1);
 
 	sub->parent = par;
 }
 
-Node * find_unbal(Node * ptr) {
-	Node * Nd = NULL;
+void tree_rebuild2(Tree * tree, Node * unbal, Node * unbal_par){
+    int size = n_size(unbal);
 
-	while (ptr->parent) {
-	    if (fabs(n_size(ptr->parent->left) - n_size(ptr->parent->right)) > 1) Nd = ptr->parent;
+    Node ** arr = (Node **)calloc(size, sizeof(Node *));
 
-        ptr = ptr->parent;
-	}
+    tree_to_arr(unbal, arr, 0);
 
-	return Nd;
+    if (!unbal_par){
+        tree->root = arr_to_tree(arr, 0, size);
+        tree->root->parent = NULL;
+    } else if (n_side(unbal) == 1) {
+        unbal_par->right = arr_to_tree(arr, 0, size);
+        unbal_par->right->parent = unbal_par;
+    } else {
+        unbal_par->left = arr_to_tree(arr, 0, size);
+        unbal_par->left->parent = unbal_par;
+    }
+
+    free(arr);
+}
+
+int tree_to_arr(Node * ptr, Node ** arr, int ind){
+    if (!ptr) return ind;
+
+    ind = tree_to_arr(ptr->left, arr, ind);
+    arr[ind] = ptr;
+    ind++;
+
+    return tree_to_arr(ptr->right, arr, ind);
+}
+
+Node * arr_to_tree(Node ** arr, int ind, int size){
+    if (!size) return NULL;
+
+    int mid = size / 2;
+
+    arr[ind + mid]->left = arr_to_tree(arr, ind, mid);
+
+    if (arr[ind + mid]->left) arr[ind + mid]->left->parent = arr[ind + mid];
+
+    arr[ind + mid]->right = arr_to_tree(arr, ind + mid + 1, size - mid - 1);
+
+    if (arr[ind + mid]->right) arr[ind + mid]->right->parent = arr[ind + mid];
+
+    return arr[ind + mid];
 }
 
 int tree_add(Tree * tree, char * key, int int1, int int2, char * str){
@@ -454,20 +501,24 @@ int tree_add(Tree * tree, char * key, int int1, int int2, char * str){
     Node * unbal = find_unbal(start);
 
     if (unbal) {
-        int unbal_size = n_size(unbal);
-        Node * list = tree_to_list(unbal);
-
         Node * unbal_par = unbal->parent;
+        tree_rebuild2(tree, unbal, unbal_par);
+        /*
+        list impl
+
+        int unbal_size = n_size(unbal);
+        Node * list = tree_to_list1(unbal);
 
         if (unbal_par) {
             if (n_side(unbal) == -1) {
-                unbal_par->left = tree_rebuild(list, unbal_par, unbal_size);
+                unbal_par->left = tree_rebuild1(list, unbal_par, unbal_size);
             } else {
-                unbal_par->right = tree_rebuild(list, unbal_par, unbal_size);
+                unbal_par->right = tree_rebuild1(list, unbal_par, unbal_size);
             }
         } else {
-            tree->root = tree_rebuild(list, NULL, unbal_size);
-        }
+            tree->root = tree_rebuild1(list, NULL, unbal_size);
+
+        }*/
     }
 	return 0;
 }
@@ -580,20 +631,23 @@ void tree_remove(Tree * tree, char * key, int version){
     else unbal = tree->root;
 
     if (unbal) {
-        int unbal_size = n_size(unbal);
-        Node * list = tree_to_list(unbal);
-
         Node * unbal_par = unbal->parent;
+        tree_rebuild2(tree, unbal, unbal_par);
+        /*
+        list impl
+
+        int unbal_size = n_size(unbal);
+        Node * list = tree_to_list1(unbal);
 
         if (unbal_par) {
             if (n_side(unbal) == -1) {
-                unbal_par->left = tree_rebuild(list, unbal_par, unbal_size);
+                unbal_par->left = tree_rebuild1(list, unbal_par, unbal_size);
             } else {
-                unbal_par->right = tree_rebuild(list, unbal_par, unbal_size);
+                unbal_par->right = tree_rebuild1(list, unbal_par, unbal_size);
             }
         } else {
-            tree->root = tree_rebuild(list, NULL, unbal_size);
-        }
+            tree->root = tree_rebuild1(list, NULL, unbal_size);
+        }*/
     }
 }
 
