@@ -90,7 +90,7 @@ int dial_add(Graph * graph){
             return 1;
         }
 
-        int err = graph_node_add(graph, vert, x, y);
+        int err = graph_node_add(graph, vert, x, y, 0);
 
         free(vert);
 
@@ -115,7 +115,7 @@ int dial_add(Graph * graph){
             return 1;
         }
 
-        int err = graph_edge_add(graph, vert1, vert2, w);
+        int err = graph_edge_add(graph, vert1, vert2, w, 1);
 
         free(vert1);
         free(vert2);
@@ -182,11 +182,11 @@ int dial_bf(Graph * graph) {
         return 1;
     }
 
-    //int err = graph_bf(graph, vert1, vert2);
+    int err = graph_bf(graph, vert1, vert2, 1);
 
     free(vert1);
     free(vert2);
-    return /*err*/ 0;
+    return 0;
 }
 
 int dial_fw(Graph * graph) {
@@ -216,9 +216,21 @@ int dial_rnd(Graph * graph) {
     int s;
     if (get_int(&s)) return 1;
 
-    //int err = graph_rnd(graph, s);
+    int err = graph_rnd(graph, s);
 
-    return /*err*/ 0;
+    return err;
+}
+
+int dial_test() {
+	printf("---TEST---\n");
+
+	printf("Enter a count of nodes: \n");
+	int option;
+	if (get_int(&option)) return 1;
+
+	graph_test(option);
+
+	return 0;
 }
 
 int dial_bfs(Graph * graph) {
@@ -237,11 +249,12 @@ int dial_bfs(Graph * graph) {
 		return 1;
 	}
 
-	//int err = graph_bfs(graph, vert1, vert2);
+	int err = graph_bfs(graph, vert1, vert2, 1);
 
 	free(vert1);
 	free(vert2);
-	return /*err*/ 0;
+
+	return 0;
 }
 
 int dial_show(Graph * graph) {
@@ -251,8 +264,8 @@ int dial_show(Graph * graph) {
 	int option;
 	if (get_int(&option)) return 1;
 
-	//if (option == 1) graph_adj(graph);
-	if (option == 2) graph_graphviz(graph);
+	if (option == 1) graph_adj(graph);
+	else if (option == 2) graph_graphviz(graph);
 	else printf("ERROR: No such option");
 
 	return 0;
@@ -280,10 +293,11 @@ int dialog(const char *menu[], const int menu_size) {
 }
 
 void start(Graph * graph) {
-	const char * menu[] = {"0) Quit", "1) Add", "2) Delete", "3) show (BFS)"/*, "4) Bellman-Ford", "5) Floyd-Warshall", "6)Random", "7) Show"*/};
+	const char * menu[] = {"0) Quit", "1) Add", "2) Delete", "3) Show", "4) Random", "5) Test", "6) BFS" , "7) Bellman-Ford"/*, "8) Floyd-Warshall" */};
+
 	int menu_size = sizeof(menu)/sizeof(menu[0]);
 
-	int (*dialog_functions[])(Graph*) = {NULL, dial_add, dial_delete/*, dial_bfs, dial_bf, dial_fw, dial_rnd*/, dial_show};
+	int (*dialog_functions[])(Graph*) = {NULL, dial_add, dial_delete, dial_show, dial_rnd, dial_test, dial_bfs, dial_bf/*, dial_fw*/};
 
 	int opt;
 	while ((opt = dialog(menu, menu_size))) {
