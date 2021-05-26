@@ -180,7 +180,7 @@ int graph_edge_add(Graph * graph, char * vert1, char * vert2, int weight, int fl
             prev->next = edge;
         else
             start->list = edge;
-
+        graph->esize++;
         return 0;
     } else {
         if(flag){
@@ -226,6 +226,7 @@ int graph_edge_del(Graph * graph, char * vert1, char * vert2) {
                     start->list = cur->next;
 
                 free(cur);
+                graph->esize++;
                 return 0;
             }
 
@@ -489,7 +490,7 @@ void Qdelete(Queue * Q) {
     Q = NULL;
 }
 
-int graph_bfs(Graph * graph, char * V1, char * V2, int flag) {
+int graph_bfs(Graph * graph, char * V1, char * V2, int flag) { //redo with recursive
     Node * temp = graph->list;
     Node * first = NULL;
 
@@ -549,7 +550,7 @@ void BFShelp(Node * nodes[], int id) {
     printf("%s -> ", prev->vert);
 }
 
-int graph_bf(Graph *graph, char * vert1, char * vert2, int flag) {
+int graph_bf(Graph * graph, char * vert1, char * vert2, int flag) {
     Node * temp = graph->list;
 
     int i = 0;
@@ -603,14 +604,14 @@ int graph_bf(Graph *graph, char * vert1, char * vert2, int flag) {
 		}
 	}
 
-	if (prev[end->id] == INT_MAX){
+	if (!prev[end->id] || prev[end->id] == INT_MAX){
         if(flag) printf("WARNING: path not found\n");
         free(prev);
         free(dist);
         return 0;
 	}
 
-	if(flag){
+	if(flag && prev[end->id]){
         BFShelp(prev, end->id);
         printf("%s\n", end->vert);
 	}
@@ -621,4 +622,196 @@ int graph_bf(Graph *graph, char * vert1, char * vert2, int flag) {
 }
 
 int graph_fw(Graph * graph, char * vert1, char * vert2, int flag) {
+    Node * temp = graph->list;
+
+    int i = 0;
+
+    Node * source = NULL;
+    Node * end = NULL;
+
+    while (temp) {
+        if (!strcmp(temp->vert,vert1)) source = temp;
+        if (!strcmp(temp->vert,vert2)) end = temp;
+        temp->id = i;
+        temp = temp->next;
+        i++;
+    }
+
+    if(!source || !end){
+        if(flag) printf("ERROR: No such vertices\n");
+        return 0;
+	}
+
+    Node * help[i];
+    temp = graph->list;
+
+    for(int k = 0; k < i; k++){
+        help[k] = temp;
+        temp = temp->next;
+    }
+
+    int dist1[i][i];
+    int dist2[i][i];
+    int dist3[i][i];
+    int hist1[i][i];
+    int hist2[i][i];
+    int hist3[i][i];
+
+    for(int m = 0; m < i; m++){
+        for(int l = 0; l < i; l++){
+            dist1[m][l] = INT_MAX;
+            hist1[m][l] = l;
+        }
+        Edge * E = help[m]->list;
+        while(E){
+            dist1[m][E->end->id] = E->weight;
+            E = E->next;
+        }
+    }
+
+    for (int k = 0; k < i; k++){
+        for (int n = 0; n < i; n++){
+            for (int j = 0; j < i; j++){
+                if (dist1[n][k] != INT_MAX && dist1[k][j] != INT_MAX && dist1[n][k] + dist1[k][j] < dist1[n][j]){
+                    dist3[n][j] = dist2[n][j];
+                    hist3[n][j] = hist2[n][j];
+                    dist2[n][j] = dist1[n][j];
+                    hist2[n][j] = hist1[n][j];
+                    dist1[n][j] = dist1[n][k] + dist1[k][j];
+                    hist1[n][j] = hist1[n][k];
+                }
+            }
+        }
+    }
+
+    int Stempid = source->id;
+    int Etempid = end->id;
+
+    while(Stempid){
+        printf("%s <- ", help[Stempid]->vert);
+        Stempid = hist1[Stempid][Etempid];
+    }
+    printf("%s\n", help[Etempid]->vert);
+
+    Stempid = source->id;
+
+    while(Stempid){
+        printf("%s <- ", help[Stempid]->vert);
+        Stempid = hist2[Stempid][Etempid];
+    }
+    printf("%s\n", help[Etempid]->vert);
+
+    Stempid = source->id;
+
+    while(Stempid){
+        printf("%s <- ", help[Stempid]->vert);
+        Stempid = hist3[Stempid][Etempid];
+    }
+    printf("%s\n", help[Etempid]->vert);
+}
+
+
+
+int graph_save(Graph * graph, char * filep){
+    FILE * file;
+	file = fopen(filep, "wb");
+	if (!file) return 1;
+
+	fwrite(&(graph->size), sizeof(int), 1, file);
+
+	Node * cur = graph->list;
+	while (cur) {
+		int len = strlen(cur->vert);
+
+		fwrite(&len, sizeof(int), 1, file);
+		fwrite(cur->vert, sizeof(char), len, file);
+		fwrite(&(cur->x), sizeof(double), 1, file);
+		fwrite(&(cur->y), sizeof(double), 1, file);
+
+		cur = cur->next;
+	}
+
+	cur = graph->list;
+	fwrite(&(graph->esize), sizeof(int), 1, file);
+
+	while (cur) {
+		Edge *edge = cur->list;
+
+		while (edge) {
+			int len = strlen(cur->vert);
+			fwrite(&len, sizeof(int), 1, file);
+			fwrite(cur->vert, sizeof(char), len, file);
+
+			len = strlen(edge->end->vert);
+			fwrite(&len, sizeof(int), 1, file);
+			fwrite(edge->end->vert, sizeof(char), len, file);
+
+			fwrite(&(edge->weight), sizeof(int), 1, file);
+
+			edge = edge->next;
+		}
+
+		cur = cur->next;
+	}
+
+	fclose(file);
+	return 0;
+}
+
+int graph_load(Graph * graph, char * filep) {
+	FILE * file;
+	file = fopen(filep, "rb");
+	if (!file) return NULL;
+
+
+	int size;
+	fread(&size, sizeof(int), 1, file);
+
+	for (int i = 0; i < size; i++) {
+		int len;
+
+		fread(&len, sizeof(int), 1, file);
+
+		char * vert = (char *)calloc(len + 1, sizeof(char));
+		fread(vert, sizeof(char), len, file);
+		vert[len] = '\0';
+
+		double x, y;
+
+		fread(&x, sizeof(double), 1, file);
+		fread(&y, sizeof(double), 1, file);
+
+		graph_node_add(graph, vert, x, y, 0);
+
+		free(vert);
+	}
+
+	fread(&size, sizeof(int), 1, file);
+
+	for (int i = 0; i < size; i++) {
+		int len;
+
+		fread(&len, sizeof(int), 1, file);
+
+		char * vert1 = (char *)calloc(len + 1, sizeof(char));
+		fread(vert1, sizeof(char), len, file);
+		vert1[len] = '\0';
+
+		fread(&len, sizeof(int), 1, file);
+
+		char * vert2 = (char *)calloc(len + 1, sizeof(char));
+		fread(vert2, sizeof(char), len, file);
+		vert2[len] = '\0';
+
+		int weight;
+
+		fread(&weight, sizeof(int), 1, file);
+
+		graph_edge_add(graph, vert1, vert2, weight, 0);
+
+		free(vert1);
+		free(vert2);
+	}
+
+	fclose(file);
 }

@@ -3,6 +3,8 @@
 
 typedef struct Graph {
 	int size;
+	int esize;
+
 	struct Node * list;
 } Graph;
 

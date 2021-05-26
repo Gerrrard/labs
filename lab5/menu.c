@@ -203,11 +203,11 @@ int dial_fw(Graph * graph) {
         return 1;
     }
 
-    //int err = graph_fw(graph, vert1, vert2);
+    int err = graph_fw(graph, vert1, vert2, 1);
 
     free(vert1);
     free(vert2);
-    return /*err*/ 0;
+    return 0;
 }
 
 int dial_rnd(Graph * graph) {
@@ -293,11 +293,11 @@ int dialog(const char *menu[], const int menu_size) {
 }
 
 void start(Graph * graph) {
-	const char * menu[] = {"0) Quit", "1) Add", "2) Delete", "3) Show", "4) Random", "5) Test", "6) BFS" , "7) Bellman-Ford"/*, "8) Floyd-Warshall" */};
+	const char * menu[] = {"0) Quit", "1) Add", "2) Delete", "3) Show", "4) Random", "5) Test", "6) BFS" , "7) Bellman-Ford", "8) Floyd-Warshall"};
 
 	int menu_size = sizeof(menu)/sizeof(menu[0]);
 
-	int (*dialog_functions[])(Graph*) = {NULL, dial_add, dial_delete, dial_show, dial_rnd, dial_test, dial_bfs, dial_bf/*, dial_fw*/};
+	int (*dialog_functions[])(Graph*) = {NULL, dial_add, dial_delete, dial_show, dial_rnd, dial_test, dial_bfs, dial_bf, dial_fw};
 
 	int opt;
 	while ((opt = dialog(menu, menu_size))) {
