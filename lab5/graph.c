@@ -650,21 +650,18 @@ int graph_fw(Graph * graph, char * vert1, char * vert2, int flag) {
         temp = temp->next;
     }
 
-    int dist1[i][i];
-    int dist2[i][i];
-    int dist3[i][i];
-    int hist1[i][i];
-    int hist2[i][i];
-    int hist3[i][i];
+    int dist[i][i];
+    int hist[i][i];
 
     for(int m = 0; m < i; m++){
         for(int l = 0; l < i; l++){
-            dist1[m][l] = INT_MAX;
-            hist1[m][l] = l;
+            dist[m][l] = INT_MAX;
+            hist[m][l] = -1;
         }
         Edge * E = help[m]->list;
         while(E){
-            dist1[m][E->end->id] = E->weight;
+            dist[m][E->end->id] = E->weight;
+            hist[m][E->end->id] = E->end->id;
             E = E->next;
         }
     }
@@ -672,45 +669,23 @@ int graph_fw(Graph * graph, char * vert1, char * vert2, int flag) {
     for (int k = 0; k < i; k++){
         for (int n = 0; n < i; n++){
             for (int j = 0; j < i; j++){
-                if (dist1[n][k] != INT_MAX && dist1[k][j] != INT_MAX && dist1[n][k] + dist1[k][j] < dist1[n][j]){
-                    dist3[n][j] = dist2[n][j];
-                    hist3[n][j] = hist2[n][j];
-                    dist2[n][j] = dist1[n][j];
-                    hist2[n][j] = hist1[n][j];
-                    dist1[n][j] = dist1[n][k] + dist1[k][j];
-                    hist1[n][j] = hist1[n][k];
+                if (dist[n][k] != INT_MAX && dist[k][j] != INT_MAX && dist[n][k] + dist[k][j] < dist[n][j]){
+                    dist[n][j] = dist[n][k] + dist[k][j];
+                    hist[n][j] = hist[n][k];
                 }
             }
         }
     }
 
-    int Stempid = source->id;
-    int Etempid = end->id;
+    int TempId = source->id;
 
-    while(Stempid){
-        printf("%s <- ", help[Stempid]->vert);
-        Stempid = hist1[Stempid][Etempid];
+    while(TempId != -1 && TempId != end->id && flag){
+        if(hist[TempId][end->id] != -1) printf("%s -> ", help[TempId]->vert);
+        else printf("WARNING: No such path\n");
+        TempId = hist[TempId][end->id];
     }
-    printf("%s\n", help[Etempid]->vert);
-
-    Stempid = source->id;
-
-    while(Stempid){
-        printf("%s <- ", help[Stempid]->vert);
-        Stempid = hist2[Stempid][Etempid];
-    }
-    printf("%s\n", help[Etempid]->vert);
-
-    Stempid = source->id;
-
-    while(Stempid){
-        printf("%s <- ", help[Stempid]->vert);
-        Stempid = hist3[Stempid][Etempid];
-    }
-    printf("%s\n", help[Etempid]->vert);
+    if (flag && TempId != -1) printf("%s\n", end->vert);
 }
-
-
 
 int graph_save(Graph * graph, char * filep){
     FILE * file;
@@ -757,7 +732,6 @@ int graph_save(Graph * graph, char * filep){
 	fclose(file);
 	return 0;
 }
-
 int graph_load(Graph * graph, char * filep) {
 	FILE * file;
 	file = fopen(filep, "rb");
